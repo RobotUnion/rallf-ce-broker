@@ -4,12 +4,19 @@ services:
     build: .
     ports:
       - 3000
+    restart: on-failure
+    depends_on: 
+        - rabbit
+        - crossbar-server
+    environment: 
+      RABBIT_URL: amqp://rabbit:5672
 
   rabbit:
     image: rabbitmq:3-management
     ports:
       - 9001:15672
       - 5672:5672
+    restart: on-failure
 
   # Creates a crossbar router 
   crossbar:
@@ -31,5 +38,6 @@ services:
     command: 
       - python 
       - /app/tests/ws-server.py
+    restart: on-failure
     depends_on: 
       - crossbar
