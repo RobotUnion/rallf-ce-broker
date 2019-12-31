@@ -1,0 +1,26 @@
+{
+  "name": "rallf-broker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "api.js",
+  "bin": {
+    "rallf-broker": "broker.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:w": "jest --watchAll",
+    "bin": "broker.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.5.5",
+    "commander": "^4.0.1",
+    "jayson": "^3.2.0",
+    "json-rpiecy": "^1.4.0",
+    "loggin-js": "^1.5.2"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

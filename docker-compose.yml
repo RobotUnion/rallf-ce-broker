@@ -1,0 +1,35 @@
+version: '3'
+services:
+  broker: 
+    build: .
+    ports:
+      - 3000
+
+  rabbit:
+    image: rabbitmq:3-management
+    ports:
+      - 9001:15672
+      - 5672:5672
+
+  # Creates a crossbar router 
+  crossbar:
+    image: crossbario/crossbar
+    volumes: 
+      - .:/node
+    user: '0'
+    ports:
+      - 9000:9000 
+
+  # Creates a crossbar wamp server 
+  crossbar-server:
+    image: crossbario/autobahn-python:cpy3
+    environment: 
+      CBURL: ws://crossbar:9000/ws
+      CBREALM: realm1
+    volumes: 
+        - .:/app
+    command: 
+      - python 
+      - /app/tests/ws-server.py
+    depends_on: 
+      - crossbar
