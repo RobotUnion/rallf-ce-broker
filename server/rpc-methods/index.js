@@ -21,7 +21,7 @@ module.exports.ws = (scope) => ({
         return wrapInPromise(require('./echo')(scope), args);
     },
     createQueue(args) {
-        return wrapInPromise(require('./createQueue')(scope), args[0]);
+        return wrapInPromise(require('./create-queue')(scope), args[0]);
     },
     dispatch(args) {
         return wrapInPromise(require('./dispatch')(scope), args);
