@@ -1,9 +1,8 @@
 const { RCP_ERRORS } = require('../../src/consts');
 
 // Factory for createQueue
-module.exports = function (server, scope) {
-    console.log('scope', scope);
-    const { conn, errorQueue, taskMap, logger, broker } = scope;
+module.exports = function (scope) {
+    const { conn, logger, broker } = scope;
     const { createChannel, generateQueueNames } = broker;
     const l = logger.clone({ channel: 'rpc:createQueue' });
 

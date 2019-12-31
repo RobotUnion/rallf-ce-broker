@@ -4,23 +4,25 @@ const broker = require('./src/api');
 const { q } = require('./src/consts');
 const { createRcpServer, listenServer } = require('./src/comunication');
 const { connect, createPublisher, createChannel, setConsumer, generateQueueNames } = broker;
+const { createConnection, openConection, addMethods } = require('./src/ws');
+const methods = require('./server/rpc-methods');
 
 async function brokerMain(env, opts = {}) {
     try {
         // Connect to rabbit and create error queue
         const conn = await connect(env.RABBIT_URL);
-        const apiErrorsPublisher = await createPublisher(conn, q.API_ERROR);
+        const errorQueue = await createPublisher(conn, q.API_ERROR);
 
         // Setup loggers
-        const brokerLogger = logging.default.clone({
+        const logger = logging.default.clone({
             channel: 'broker-main',
             color: true,
             level: env.DEBUG ? loggin.severity('DEBUG') : loggin.severity('INFO')
         });
         const fileLogger = logging.createFileLogger();
-        const rabbitLogger = logging.createRabbitNotifier({ debug: true }, q.API_ERROR, apiErrorsPublisher);
+        const rabbitLogger = logging.createRabbitNotifier({ debug: true }, q.API_ERROR, errorQueue);
 
-        brokerLogger.info('Launching broker');
+        logger.info('Launching broker');
 
         // Try generating queues for tasks passes in in env
         const taskMap = {};
@@ -28,7 +30,7 @@ async function brokerMain(env, opts = {}) {
             let tasks = JSON.parse(env.TASKS);
             let names = Object.keys(tasks);
             for (let name of names) {
-                brokerLogger.debug('Procesing task: ' + name, tasks[name]);
+                logger.debug('Procesing task: ' + name, tasks[name]);
 
                 const qname = generateQueueNames(name);
                 const qin = await createChannel(conn, qname.in);
@@ -42,26 +44,46 @@ async function brokerMain(env, opts = {}) {
                         qout,
                         qerror: setConsumer(qerror, `${name}:error`, (msg) => {
                             if (msg !== null) {
-                                brokerLogger.error(msg.content.toString());
+                                logger.error(msg.content.toString());
                                 qerror.ack(msg);
                             }
                         }),
                     },
                 };
 
-                brokerLogger.debug('Created queues for: ' + name);
+                logger.debug('Created queues for: ' + name);
             }
         }
 
-        brokerLogger.info('Processed tasks');
+        logger.info('Processed tasks');
 
         // Setup rpc server (conection with daemon)
+        const scope = { conn, taskMap, logger, broker, generateQueueNames };
+        const rpcPort = (env.EXPOSE_PORT || 3000);
         const rpcServer = listenServer.http(
-            createRcpServer({ conn, errorQueue: apiErrorsPublisher, taskMap, logger: brokerLogger, broker, generateQueueNames }),
-            3000
+            createRcpServer(
+                scope,
+                methods.rpc(scope),
+            ),
+            rpcPort
         );
+        logger.info(`Rpc server running at: ${rpcPort}`);
 
-        // TODO: Websocket connection to API
+
+        // Websocket (connection to API)
+        const wsUrl = (env.WS_URL || 'ws://localhost:9000/ws');
+        const wsRealm = (env.WS_REALM || 'realm1');
+        let wsConnection = createConnection({
+            url: wsUrl,
+            realm: wsRealm,
+        });
+
+        const wsSession = await openConection(wsConnection);
+        const wsMethods = methods.ws(scope);
+        addMethods(wsSession, wsMethods);
+
+        logger.info(`Websocket running at: ${wsUrl} <${wsRealm}>`);
+        logger.info(`Methods`, wsMethods);
 
         // Log requests
         rpcServer.on('request', (request) => {

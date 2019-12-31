@@ -16,15 +16,34 @@ function addSubscription(session, name, cb) {
     return session.subscribe(name, cb);
 }
 
-function addSubscriptions(session, subs = []) {
-    for (let sub of subs) {
-        if (Array.isArray(sub)) {
-            session.subscribe(sub[0], sub[1]);
+function addMethod(session, name, cb) {
+    console.log('adding method', 'broker.' + name);
+    return session.register('broker.' + name, cb);
+}
+
+function addBulk(items, cb) {
+    if (Array.isArray(items)) {
+        for (let item of items) {
+            if (Array.isArray(item)) {
+                cb(item[0], item[1]);
+            }
+            else if (typeof item === 'object') {
+                cb(item.name, item.callback);
+            }
         }
-        else if (typeof sub === 'object') {
-            session.subscribe(sub.name, sub.callback);
+    } else if (typeof items === 'object') {
+        for (let item in items) {
+            cb(item, items[item]);
         }
     }
+}
+
+function addSubscriptions(session, subs) {
+    addBulk(subs, addSubscription.bind(this, session));
+}
+
+function addMethods(session, subs) {
+    addBulk(subs, addMethod.bind(this, session));
 }
 
 
@@ -33,4 +52,6 @@ module.exports = {
     openConection,
     addSubscriptions,
     addSubscription,
+    addMethod,
+    addMethods,
 }

@@ -3,13 +3,33 @@ services:
   broker: 
     build: .
     ports:
-      - 3000
+      - 3000:3000
     restart: on-failure
     depends_on: 
         - rabbit
         - crossbar-server
     environment: 
       RABBIT_URL: amqp://rabbit:5672
+      WS_URL: ws://crossbar:9000/ws
+      WS_REALM: realm1
+
+  broker-dev: 
+    image: node
+    command:
+      - node
+      - /broker/bin/broker.js
+    volumes:
+      - .:/broker
+    ports:
+      - 3000:3000
+    restart: on-failure
+    depends_on: 
+        - rabbit
+        - crossbar-server
+    environment: 
+      RABBIT_URL: amqp://rabbit:5672
+      WS_URL: ws://crossbar:9000/ws
+      WS_REALM: realm1
 
   rabbit:
     image: rabbitmq:3-management
@@ -29,15 +49,15 @@ services:
 
   # Creates a crossbar wamp server 
   crossbar-server:
-    image: crossbario/autobahn-python:cpy3
+    image: node
     environment: 
       CBURL: ws://crossbar:9000/ws
       CBREALM: realm1
     volumes: 
         - .:/app
     command: 
-      - python 
-      - /app/tests/ws-server.py
+      - node 
+      - /app/tests/ws.js
     restart: on-failure
     depends_on: 
       - crossbar

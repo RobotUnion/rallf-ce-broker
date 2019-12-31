@@ -1,11 +1,9 @@
 const jayson = require('jayson');
-const baseMethods = require('../server/rpc-methods');
 
 // Creates an jayson.Server instance, with baseMethods attached
 function createRcpServer(scope = {}, methods = {}) {
     var server = jayson.server({
         ...methods,
-        ...baseMethods(server, scope),
     });
 
     return server;

@@ -2,7 +2,7 @@ const jayson = require('jayson');
 const { RCP_ERRORS } = require('../../src/consts');
 
 // Factory for dispatch
-module.exports = function (server, scope) {
+module.exports = function (scope) {
     const { conn, logger, broker } = scope;
     const { createChannel, sendMessage } = broker;
     const l = logger.clone({ channel: 'rpc:dispatch' });

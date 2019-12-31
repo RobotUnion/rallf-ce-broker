@@ -1,4 +1,4 @@
 #!/bin/bash
 echo "Launching broker"
-node bin/broker.js
+while ! nc -z rabbit 5672; do sleep 3; done && node bin/broker.js
 
