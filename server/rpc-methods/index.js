@@ -2,9 +2,11 @@ module.exports.rpc = (scope) => ({
     echo: require('./echo')(scope),
     createQueue: require('./create-queue')(scope),
     dispatch: require('./dispatch-message')(scope),
+    read: require('./read-message')(scope),
+    move: require('./move-message')(scope),
 })
 
-function wrapInPromise(fn, args){
+function wrapInPromise(fn, args) {
     return new Promise((resolve, reject) => {
         fn(args, (err, result) => {
             if (err) {
@@ -25,5 +27,11 @@ module.exports.ws = (scope) => ({
     },
     dispatch(args) {
         return wrapInPromise(require('./dispatch')(scope), args);
+    },
+    read(args) {
+        return wrapInPromise(require('./read')(scope), args);
+    },
+    move(args) {
+        return wrapInPromise(require('./move')(scope), args);
     },
 })

@@ -2,7 +2,7 @@ const { RCP_ERRORS } = require('../../src/consts');
 
 // Factory for createQueue
 module.exports = function (scope) {
-    const { conn, logger, broker } = scope;
+    const { conn, logger, broker, rabbitLogger } = scope;
     const { createChannel, generateQueueNames } = broker;
     const l = logger.clone({ channel: 'rpc:createQueue' });
 
@@ -17,6 +17,8 @@ module.exports = function (scope) {
         await createChannel(conn, qname.in);
         await createChannel(conn, qname.out);
         await createChannel(conn, qname.error);
+
+        rabbitLogger.info('created queue', qname);
 
         l.debug('created queues', qname);
         callback(null, qname);

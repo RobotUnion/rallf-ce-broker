@@ -19,3 +19,18 @@ client.request('dispatch', { to: 'Pascual', body: { test: 'jekjhrekjhr' } }, fun
   let res = response.result;
   console.log(res);
 });
+
+// client.request('move', { from: 'Pascual', to: 'Ximo' }, function (err, response) {
+//     if (err) {
+//       console.log('err', err);
+//       throw err;
+//     }
+
+//     if (response.error) {
+//       console.log('response.error', response.error);
+//       throw response.error;
+//     }
+
+//     let res = response.result;
+//     console.log(res);
+//   });

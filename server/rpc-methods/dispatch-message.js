@@ -3,7 +3,7 @@ const { RCP_ERRORS } = require('../../src/consts');
 
 // Factory for dispatch
 module.exports = function (scope) {
-    const { conn, logger, broker } = scope;
+    const { conn, logger, broker, rabbitLogger } = scope;
     const { createChannel, sendMessage } = broker;
     const l = logger.clone({ channel: 'rpc:dispatch' });
 
@@ -21,11 +21,13 @@ module.exports = function (scope) {
                     version: 2,
                 });
 
-            const q = args.to + ':in';
+            const q = args.to + ':out';
             const ch = await createChannel(conn, q);
             await sendMessage(ch, q, JSON.stringify(request));
 
             l.debug('sent message', request);
+            
+            rabbitLogger.info('sent message', request);
 
             callback(null, request);
         }

@@ -6,13 +6,18 @@ let conn = createConnection({
 });
 openConection(conn)
     .then(session => {
-        setInterval(() => {
-            session.call('broker.createQueue', [{ name: 'test' }]).then(
-                function (res) {
-                    console.log("Result:", res);
-                }
-            );
-        }, 10000);
+        // setInterval(() => {
+        //     session.call('broker.createQueue', [{ name: 'test' }]).then(
+        //         function (res) {
+        //             console.log("Result:", res);
+        //         }
+        //     );
+        // }, 10000);
+
+        session.register('delegate', ([err, args]) => {
+            console.log('delegate', args);
+            return [null, 'Delegated']
+        });
     }).catch(console.error);
 
 // let conn2 = createConnection({

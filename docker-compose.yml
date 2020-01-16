@@ -18,6 +18,7 @@ services:
     command:
       - node
       - /broker/bin/broker.js
+      - -d
     volumes:
       - .:/broker
     ports:

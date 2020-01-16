@@ -1,10 +1,11 @@
 const amqp = require('amqplib');
 
-function generateQueueNames(name){
+function generateQueueNames(name) {
     return {
         in: `${name}:in`,
         out: `${name}:out`,
         error: `${name}:error`,
+        base: name
     };
 }
 
@@ -28,6 +29,10 @@ function createQueue(ch, q) {
 }
 
 function setConsumer(ch, q, cb) {
+    return ch.consume(q, cb);
+}
+
+function getMessage(ch, q, cb) {
     return ch.consume(q, cb);
 }
 
@@ -67,6 +72,7 @@ module.exports = {
     createConsumer,
     createPublisher,
     getPubCons,
+    getMessage,
     setConsumer,
     setQueue,
     sendMessage,

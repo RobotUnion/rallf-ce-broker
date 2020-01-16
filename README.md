@@ -32,22 +32,17 @@ Available at: `ws://127.0.0.1:9000/ws`
 ## Notes
 >  For routing take a look at https://www.rabbitmq.com/tutorials/tutorial-four-javascript.html
 
-Require messages to be in JSON-rpc
-Create tcp server, so that other programs can interact with broker
-  - Should it be a server or client?
+No hace falta rpc, 
+acciones se loguean a la api por WS
 
-3 queues per process (in, out, error)
-Router identifier, an id to identity this queue
+De una cola de salida a otra de entrada.
 
-Each queue reader must be able to either write to any queue or send a tcp command
-Each queue writer must be able to write to any queue  
 
-It receives data from process.env
-* API_WS_URL   - string
-* API_WS_AUTH  - string
-* RABBIT_URL   - string
-* INCUBATOR_ID - string
-* TASKS        - "{ x: {}}"
+## Metodos
+### Websocket 
+Tratamiento de errores usando, error first callback.
+En el callback el primer argumento sera siempre el error y el segundo el resultado
 
-Queue reader, reads from specified queue and performs some action.
-It will restart whenever a new task needs a queue.
+La api deberia tener estos metodos:
+* `delegate`
+* `log`
