@@ -5,7 +5,7 @@ const client = jayson.client.http({
   port: 3000
 });
 
-client.request('dispatch', { to: 'Pascual', body: { test: 'jekjhrekjhr' } }, function (err, response) {
+client.request('dispatch', { to: 'Ximo', body: { test: 'jekjhrekjhr' } }, function (err, response) {
   if (err) {
     console.log('err', err);
     throw err;

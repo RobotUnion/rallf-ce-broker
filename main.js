@@ -9,8 +9,10 @@ const methods = require('./server/rpc-methods');
 const jayson = require('jayson');
 
 const RoutingMap = new Map();
-// RoutingMap.set('Pascual', 'Ximo');
-RoutingMap.set('Ximo', 'Juan');
+RoutingMap.set('Pascual', 'Ximo');
+// RoutingMap.set('Ximo', 'Juan');
+
+const ResponseMap = new Map();
 
 async function brokerMain(env, opts = {}) {
     try {
@@ -53,38 +55,81 @@ async function brokerMain(env, opts = {}) {
             let tasks = JSON.parse(env.TASKS);
             let names = Object.keys(tasks);
             for (let name of names) {
-                logger.debug('Procesing task: ' + name, tasks[name]);
+                logger.info('Procesing task: <%g' + name + '>', tasks[name]);
 
+                // Generate queues
                 const qname = generateQueueNames(name);
                 const qin = await createChannel(conn, qname.in);
                 const qout = await createChannel(conn, qname.out);
                 const qerror = await createChannel(conn, qname.error);
 
+                const qoutConsumer = setConsumer(qout, qname.out, async (msg) => {
+                    logger.debug(`Consuming message from queue <%g${qname.out}>`);
+
+                    let msgParsed = JSON.parse(msg.content.toString());
+                    logger.debug(`Received message: <%b${msgParsed.id}>`);
+
+                    // Ack message
+                    qout.ack(msg);
+
+                    console.log('ResponseMap: ', ResponseMap);
+
+                    // If a response is set for this message, we must sent it back to the requester  
+                    if (ResponseMap.has(msgParsed.id)) {
+                        console.log('Has response map ');
+                        const responseQueue = ResponseMap.get(msgParsed.id);
+                        const outChannel = await createChannel(conn, responseQueue);
+
+                        ResponseMap.delete(msgParsed.id);
+                        logger.debug(`Sent message to <%g${responseQueue}>`);
+                        return await sendMessage(outChannel, responseQueue, msg.content);
+                    }
+
+                    logger.debug(`Checking if it has routing key`);
+                    // If routing key is found, we use it to move message to another queue
+                    // This means it might receive a response from the task
+                    if (RoutingMap.has(qname.base)) {
+                        logger.debug(`Has routing key`);
+
+                        // Get the routing queue name
+                        const outQueue = RoutingMap.get(qname.base);
+                        const qoutName = generateQueueNames(outQueue);
+
+                        // Save a reference to the response receiver
+                        if (msgParsed.id !== undefined) {
+                            ResponseMap.set(msgParsed.id, qname.in);
+                        }
+
+                        const outChannel = await createChannel(conn, qoutName.in);
+
+                        logger.debug(`Sent message to <%g${qoutName.in}>`);
+                        await sendMessage(outChannel, qoutName.in, msg.content);
+                    }
+                    // If routing key is not found, we must send the message to the API through WS
+                    else {
+                        logger.debug(`Has routing key`);
+                        logger.debug('Calling remote procedure (delegate)', msgParsed);
+
+                        // Call remote procedure, and wait for result
+                        wsSession.call('delegate', [null, msgParsed])
+                            .then(
+                                function ([err, res]) {
+                                    logger.debug('[err, res]', [err, res]);
+                                    const response = jayson.Utils.response(err, res, msgParsed.id);
+                                    logger.info('Got result from (delegate)', response);
+
+                                    // If there is an error send to error queue
+                                    return sendMessage(qin, qname.in, JSON.stringify(response));
+                                }
+                            ).catch(err => rabbitLogger.error(err.message, err));
+                    }
+                });
+
                 taskMap[name] = {
                     spec: tasks[name],
                     queues: {
                         qin,
-                        qout: setConsumer(qout, qname.out, async (msg) => {
-                            logger.debug(`Consuming message from queue <%g${qname.out}>`);
-                            let outQueue = RoutingMap.get(qname.base);
-                            qout.ack(msg);
-                            if (outQueue) {
-                                const qoutName = generateQueueNames(outQueue);
-                                const outChannel = await createChannel(conn, qoutName.in);
-                                await sendMessage(outChannel, qoutName.in, msg.content);
-                            } else {
-                                let dataParsed = JSON.parse(msg.content.toString());
-                                logger.debug('Calling remote procedure (delegate)', dataParsed);
-                                wsSession.call('delegate', [null, dataParsed]).then(
-                                    function ([err, res]) {
-                                        const response = jayson.Utils.response(err, res, dataParsed.id);
-
-                                        logger.debug('Got result from (delegate)', response);
-                                        return sendMessage(qin, qname.in, JSON.stringify(response));
-                                    }
-                                );
-                            }
-                        }),
+                        qout: qoutConsumer,
                         qerror,
                     },
                 };

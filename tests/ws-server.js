@@ -16,7 +16,7 @@ openConection(conn)
 
         session.register('delegate', ([err, args]) => {
             console.log('delegate', args);
-            return [null, 'Delegated']
+            return [null, { "sada": "asdas" }];
         });
     }).catch(console.error);
 

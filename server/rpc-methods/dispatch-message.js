@@ -14,7 +14,7 @@ module.exports = function (scope) {
             l.error('Invalid parameters', args);
             return callback(this.error(RCP_ERRORS.INVALID_PARAMS));
         } else {
-            l.debug('sending message', args);
+            l.debug('sending message');
 
             const request = jayson.Utils
                 .request('action', args.body, jayson.Utils.generateId(), {
@@ -25,10 +25,8 @@ module.exports = function (scope) {
             const ch = await createChannel(conn, q);
             await sendMessage(ch, q, JSON.stringify(request));
 
-            l.debug('sent message', request);
+            l.debug('sent message', request.id);
             
-            rabbitLogger.info('sent message', request);
-
             callback(null, request);
         }
     };

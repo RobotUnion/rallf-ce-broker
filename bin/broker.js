@@ -9,9 +9,6 @@ process.env.TASKS = JSON.stringify({
     "Ximo": {
 
     },
-    "Juan": {
-        
-    }
 });
 
 program
