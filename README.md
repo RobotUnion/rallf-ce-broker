@@ -33,16 +33,6 @@ Available at: `ws://127.0.0.1:9000/ws`
 ### Run tests
 `docker-compose up test`
 
-
-## Notes
->  For routing take a look at https://www.rabbitmq.com/tutorials/tutorial-four-javascript.html
-
-No hace falta rpc, 
-acciones se loguean a la api por WS
-
-De una cola de salida a otra de entrada.
-
-
 ## Metodos
 ### Websocket 
 Tratamiento de errores usando, error first callback.
