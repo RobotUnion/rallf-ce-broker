@@ -1,4 +1,4 @@
-const { createRcpServer, listenServer } = require('../src/comunication');
+const { createRcpServer, listenServer } = require('../src/rpc');
 const rpcServer = listenServer.tcp(
     createRcpServer(),
     3000,

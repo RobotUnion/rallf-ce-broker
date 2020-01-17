@@ -34,4 +34,4 @@ module.exports.ws = (scope) => ({
     move(args) {
         return wrapInPromise(require('./move')(scope), args);
     },
-})
+});
