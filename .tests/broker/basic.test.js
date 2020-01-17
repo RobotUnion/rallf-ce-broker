@@ -69,4 +69,8 @@ fdescribe('Basic queue tests', () => {
             done();
         });
     });
+
+    it(`If no routing key, it should sent to API through WebSocket`, async (done) => {
+        expect(false).toBeTruthy();
+    });
 });
