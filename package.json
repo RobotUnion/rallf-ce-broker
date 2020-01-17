@@ -7,7 +7,7 @@
     "rallf-broker": "broker.js"
   },
   "scripts": {
-    "test": "jest",
+    "test": "sleep 20; jest",
     "test:w": "jest --watchAll",
     "bin": "broker.js"
   },

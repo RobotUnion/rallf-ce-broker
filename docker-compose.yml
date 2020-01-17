@@ -13,6 +13,19 @@ services:
       WS_URL: ws://crossbar:9000/ws
       WS_REALM: realm1
 
+  test: 
+    build: .
+    command: npm run test
+    depends_on: 
+      - rabbit
+      - crossbar-server
+      - broker-dev
+    network_mode: host
+    environment: 
+      RABBIT_URL: amqp://0.0.0.0:5672
+      WS_URL: ws://crossbar:9000/ws
+      WS_REALM: realm1
+
   broker-dev: 
     image: node
     command:
