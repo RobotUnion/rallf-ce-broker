@@ -72,11 +72,8 @@ async function brokerMain(env, opts = {}) {
                     // Ack message
                     qout.ack(msg);
 
-                    console.log('ResponseMap: ', ResponseMap);
-
                     // If a response is set for this message, we must sent it back to the requester  
                     if (ResponseMap.has(msgParsed.id)) {
-                        console.log('Has response map ');
                         const responseQueue = ResponseMap.get(msgParsed.id);
                         const outChannel = await createChannel(conn, responseQueue);
 
