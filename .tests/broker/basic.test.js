@@ -54,13 +54,16 @@ fdescribe('Basic queue tests', () => {
         await qInPascual.purgeQueue(qNamePascual);
 
         let msgSent = await dispatchToPascual();
+        msgSent.result = msgSent.params;
+        delete msgSent.params;
+        
         console.log('Send message: ', msgSent);
 
         await broker.sendMessage(qOutXimo, qNameXimo, JSON.stringify(msgSent));
         console.log('Sent message: ', msgSent.id);
 
         broker.setConsumer(qInPascual, qNamePascual, (msg) => {
-            qInPascual.ack(msg);
+            // qInPascual.ack(msg);
             expect(msg).toBeTruthy();
 
             let parsed = JSON.parse(msg.content.toString());
