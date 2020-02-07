@@ -1,5 +1,5 @@
 {
-  "name": "rallf-broker",
+  "name": "rallf-ce-broker",
   "version": "1.0.0",
   "description": "",
   "main": "api.js",
