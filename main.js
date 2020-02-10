@@ -9,8 +9,8 @@ const methods = require('./server/rpc-methods');
 const jayson = require('jayson');
 
 const RoutingMap = new Map();
-RoutingMap.set('Pascual', 'Ximo');
-// RoutingMap.set('Ximo', 'Juan');
+RoutingMap.set('basic-example', 'test-task');
+// RoutingMap.set('basic-example', 'test-delegate');
 
 const ResponseMap = new Map();
 
@@ -82,7 +82,7 @@ async function brokerMain(env, opts = {}) {
                         return await sendMessage(outChannel, responseQueue, msg.content);
                     }
 
-                    logger.debug(`Checking if it has routing key`);
+                    logger.debug(`Checking if it has routing key for ${qname.base}`);
                     // If routing key is found, we use it to move message to another queue
                     // This means it might receive a response from the task
                     if (RoutingMap.has(qname.base)) {

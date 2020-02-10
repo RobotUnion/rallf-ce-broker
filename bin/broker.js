@@ -3,12 +3,8 @@ const program = require('commander');
 const brokerMain = require('../main');
 
 process.env.TASKS = JSON.stringify({
-    "Pascual": {
-
-    },
-    "Ximo": {
-
-    },
+    "test-task": {},
+    "basic-example": {}
 });
 
 program

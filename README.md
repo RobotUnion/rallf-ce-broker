@@ -10,6 +10,7 @@ You can run the broker in a couple of ways:
 * `npm run bin`  
 * `node bin/broker.js`  
 
+
 This will expose a tcp server, available at: `rallf-ce-broker:3000`
 
 For development is better to use: 
