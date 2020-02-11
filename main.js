@@ -7,7 +7,6 @@ const { connect, createPublisher, sendMessage, createChannel, setConsumer, gener
 const { createConnection, openConection, addMethods } = require('./src/ws');
 const methods = require('./server/rpc-methods');
 const jayson = require('jayson');
-const util = require('util');
 
 const RoutingMap = new Map();
 RoutingMap.set('basic-example', 'test-task');
