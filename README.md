@@ -44,5 +44,5 @@ La api deberia tener estos metodos:
 * `log`
 
 
-## Diagram
+## Diagram
 ![](./rallf-broker.png)
