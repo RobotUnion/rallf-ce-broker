@@ -31,14 +31,18 @@ Launches a Crossbar.io router and wamp server.
 
 Available at: `ws://127.0.0.1:9000/ws`
 
-### Run tests
+### Run tests
 `docker-compose up test`
 
-## Metodos
-### Websocket 
+## Metodos
+### Websocket 
 Tratamiento de errores usando, error first callback.
 En el callback el primer argumento sera siempre el error y el segundo el resultado
 
 La api deberia tener estos metodos:
 * `delegate`
 * `log`
+
+
+## Diagram
+![](./rallf-broker.png)
