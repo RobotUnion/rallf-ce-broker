@@ -7,6 +7,7 @@ const { connect, createPublisher, sendMessage, createChannel, setConsumer, gener
 const { createConnection, openConection, addMethods } = require('./src/ws');
 const methods = require('./server/rpc-methods');
 const jayson = require('jayson');
+const util = require('util');
 
 const RoutingMap = new Map();
 RoutingMap.set('basic-example', 'test-task');
@@ -66,60 +67,75 @@ async function brokerMain(env, opts = {}) {
                 const qoutConsumer = setConsumer(qout, qname.out, async (msg) => {
                     logger.debug(`Consuming message from queue <%g${qname.out}>`);
 
-                    let msgParsed = JSON.parse(msg.content.toString());
-                    logger.debug(`Received message: <%b${msgParsed.id}>`);
+                    // Try and parse rpc request
+                    jayson.Utils.JSON.parse(msg.content.toString(), {},
+                        (err, msgParsed) => {
+                            if(err) {
+                                // We notAck the message
+                                qout.nack(msg);
+                                // Send message to error queue
+                                return sendMessage(qerror, qname.error, JSON.stringify({ message: err.message }));
+                            }
 
-                    // Ack message
-                    qout.ack(msg);
+                            logger.debug(`Received message: <%b${msgParsed.id}>`);
 
-                    // If a response is set for this message, we must sent it back to the requester  
-                    if (ResponseMap.has(msgParsed.id)) {
-                        const responseQueue = ResponseMap.get(msgParsed.id);
-                        const outChannel = await createChannel(conn, responseQueue);
+                            // Ack message
+                            qout.ack(msg);
 
-                        ResponseMap.delete(msgParsed.id);
-                        logger.debug(`Sent message to <%g${responseQueue}>`);
-                        return await sendMessage(outChannel, responseQueue, msg.content);
-                    }
+                            // If a response is set for this message, we must sent it back to the requester  
+                            if (ResponseMap.has(msgParsed.id)) {
+                                const responseQueue = ResponseMap.get(msgParsed.id);
+                                const outChannel = await createChannel(conn, responseQueue);
 
-                    logger.debug(`Checking if it has routing key for ${qname.base}`);
-                    // If routing key is found, we use it to move message to another queue
-                    // This means it might receive a response from the task
-                    if (RoutingMap.has(qname.base)) {
-                        logger.debug(`Has routing key`);
+                                ResponseMap.delete(msgParsed.id);
+                                logger.debug(`Sent message to <%g${responseQueue}>`);
+                                return await sendMessage(outChannel, responseQueue, msg.content);
+                            }
 
-                        // Get the routing queue name
-                        const outQueue = RoutingMap.get(qname.base);
-                        const qoutName = generateQueueNames(outQueue);
+                            logger.debug(`Checking if it has routing key for ${qname.base}`);
 
-                        // Save a reference to the response receiver
-                        if (msgParsed.id !== undefined) {
-                            ResponseMap.set(msgParsed.id, qname.in);
-                        }
+                            if (msgParsed.method === 'delegate') {
+                                // If routing key is found, we use it to move message to another queue
+                                // This means it might receive a response from the task
+                                if (RoutingMap.has(qname.base)) {
+                                    logger.debug(`Has routing key`);
 
-                        const outChannel = await createChannel(conn, qoutName.in);
+                                    // Get the routing queue name
+                                    const outQueue = RoutingMap.get(qname.base);
+                                    const qoutName = generateQueueNames(outQueue);
 
-                        logger.debug(`Sent message to <%g${qoutName.in}>`);
-                        await sendMessage(outChannel, qoutName.in, msg.content);
-                    }
-                    // If routing key is not found, we must send the message to the API through WS
-                    else {
-                        logger.debug(`Has routing key`);
-                        logger.debug('Calling remote procedure (delegate)', msgParsed);
+                                    // Save a reference to the response receiver
+                                    if (msgParsed.id !== undefined) {
+                                        ResponseMap.set(msgParsed.id, qname.in);
+                                    }
 
-                        // Call remote procedure, and wait for result
-                        wsSession.call('delegate', [null, msgParsed])
-                            .then(
-                                function ([err, res]) {
-                                    logger.debug('[err, res]', [err, res]);
-                                    const response = jayson.Utils.response(err, res, msgParsed.id);
-                                    logger.info('Got result from (delegate)', response);
+                                    const outChannel = await createChannel(conn, qoutName.in);
 
-                                    // If there is an error send to error queue
-                                    return sendMessage(qin, qname.in, JSON.stringify(response));
+                                    logger.debug(`Sent message to <%g${qoutName.in}>`);
+                                    await sendMessage(outChannel, qoutName.in, msg.content);
                                 }
-                            ).catch(err => rabbitLogger.error(err.message, err));
-                    }
+                                // If routing key is not found, we must send the message to the API through WS
+                                else {
+                                    logger.debug(`Has routing key`);
+                                    logger.debug('Calling remote procedure (delegate)', msgParsed);
+
+                                    // Call remote procedure, and wait for result
+                                    wsSession.call('delegate', [null, msgParsed])
+                                        .then(
+                                            function ([err, res]) {
+                                                logger.debug('[err, res]', [err, res]);
+                                                const response = jayson.Utils.response(err, res, msgParsed.id);
+                                                logger.info('Got result from (delegate)', response);
+
+                                                // If there is an error send to error queue
+                                                return sendMessage(qin, qname.in, JSON.stringify(response));
+                                            }
+                                        ).catch(err => rabbitLogger.error(err.message, err));
+                                }
+                            } else {
+                                // What to do with non delegate requests???
+                            }
+                        });
                 });
 
                 taskMap[name] = {
