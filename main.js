@@ -64,8 +64,9 @@ async function brokerMain(env, opts = {}) {
                 const qout = await createChannel(conn, qname.out);
                 const qerror = await createChannel(conn, qname.error);
 
+                logger.debug(`Consuming message from queue <%g${qname.out}>`);
                 const qoutConsumer = setConsumer(qout, qname.out, async (msg) => {
-                    logger.debug(`Consuming message from queue <%g${qname.out}>`);
+                    logger.debug(`Received message in queue <%${qname.out}>: <%b${msgParsed.id}>`, msgParsed);
 
                     // Try and parse rpc request
                     jayson.Utils.JSON.parse(msg.content.toString(), {},
