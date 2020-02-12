@@ -1,6 +1,16 @@
-# ralf-ce-broker
+<!-- Docs links -->
+<p align="center">
+  <a href="http://rallf.com">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQxdb7maKD6w4wPHDswPAKxohEkEcJEPP492ogVxey0KzoFwvT4" height="100">
+  </a>
+</p>
+<h1 align="center">rallf-ce-broker</h1>
 
+<div align="center">
+  <p>Brokes messages between rallf Tasks, Skills, API, etc...</p>
+</div>
 
+****
 
 
 ## Usefull commands
@@ -13,8 +23,8 @@ You can run the broker in a couple of ways:
 
 This will expose a tcp server, available at: `rallf-ce-broker:3000`
 
-For development is better to use: 
-* `docker-compose up broker-dev`
+> ### For development is better to use `broker-dev`
+> `docker-compose up broker-dev`
 
 ### Run Rabbit (test)
 Launches a RabbitMQ instance.
