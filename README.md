@@ -12,6 +12,8 @@
 
 ****
 
+**Disclaimer! This package is in development stage (unstable), it may be potentially buggy**
+
 
 ## Usefull commands
 ### Run Broker
